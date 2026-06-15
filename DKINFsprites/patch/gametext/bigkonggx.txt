@@ -1,0 +1,20 @@
+Big Kong on Galaxian Hardware
+
+This bootleg of Crazy Kong was made to be played on
+Galaxian hardware.
+
+This clone retains all of the gameplay elements of 
+Donkey Kong, but has the graphics redrawn and 
+re-colorised. 
+
+Ladders on the barrel stage are in different positions
+and some rise much higher than usual. They can be used 
+to ascend two or three beams at a time, which actually 
+makes the game more difficult.
+
+The game effectively starts at level 11 so you are 
+already half way to reaching a killscreen!
+The initial difficulty is increased right from the
+start though.
+
+A Crazy Kong Bootleg

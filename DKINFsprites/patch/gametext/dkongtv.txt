@@ -1,0 +1,16 @@
+DK TV
+
+This hack provides an alternative viewpoint, with 
+Jumpman fixed in the centre of the gameplay as he is 
+followed by a camera.
+
+The camera zooms in further on the action when Jumpman
+is jumping or hammering.
+
+Difficulty is increased because you will not get to 
+see all of the screen and you will have to 
+anticipate enemies and obstacles.
+
+Don't forget to smile for the camera!
+
+Hack Developed by Jon Wilson (10yard)

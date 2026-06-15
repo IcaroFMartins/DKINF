@@ -1,0 +1,12 @@
+ZX Spectrum 48K - Donkey Kong
+
+The graphics are poor but the gameplay makes up for
+the graphical short comings. The controls are pretty
+good and Jumpman feels quite responsive,  apart from
+climbing ladders.  Climbing ladders is ridiculously
+slow and it will take some adjusting to this game.
+
+After launching, press "Jump" to start a game from the
+Spectrum's main menu.
+
+Developed By Ocean

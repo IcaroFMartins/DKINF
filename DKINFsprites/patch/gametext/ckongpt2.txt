@@ -1,0 +1,13 @@
+Crazy Kong (Part II)
+
+This Donkey Kong clone retains all of the gameplay 
+elements of Donkey Kong, but has the graphics redrawn 
+and re-colorised. 
+
+Because of its bizarre sound, graphics, and gameplay, 
+the game has a loyal cult following.
+
+Crazy Kong was an officially-licensed clone of Donkey 
+Kong manufactured by Falcon.
+
+Developed by Falcon

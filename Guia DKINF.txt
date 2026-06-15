@@ -1,0 +1,492 @@
+﻿ Variáveis e Estrutura dos Dados
+
+1. Caracteres
+    • P: Posição inicial do jogador
+    • E: Inimigos (1 ou mais)
+    • Z: Plataformas
+    • S: Subida de escada
+    • D: Descida de escada
+    • F: Porta (Final da Fase)
+    • H: Escada (Nenhum efeito apenas sprite visual)
+
+2. Macros de Pré-processamento (#define)
+    • #define MAP_SIZE 30 (Tamanho da matriz)
+    • #define TILE_SIZE 20 (Tamanho de cada bloco em pixels)
+    • #define MAX_INIMIGOS 10 (Limite do vetor de inimigos)
+    • #define SCREEN_WIDTH (MAP_SIZE * TILE_SIZE) (Largura da janela)
+    • #define SCREEN_HEIGHT (MAP_SIZE * TILE_SIZE) (Altura da janela)
+
+
+3. Definições de Tipos (struct)
+    •  typedef struct { int linha; int coluna; } Posicao;
+    • typedef struct { Posicao pos; int pontuacao; bool ativo; } Jogador; 
+    • typedef struct { Posicao pos; int direcao; } Inimigo; 
+    • typedef struct { char nome[20]; int time; } TIPO_PLACAR;
+4. Variáveis do Mundo (O Cenário)
+char mapa[MAP_SIZE][MAP_SIZE]; (A matriz que guarda o layout do jogo)
+5. Variáveis do Jogador (A Entidade Humana)
+Jogador player; (Variável única que contém todos os dados do jogador)
+6. Variáveis dos Inimigos (NPCs)
+    • Inimigo listaInimigos[MAX_INIMIGOS]; (O vetor que guarda até 10 inimigos)
+    • int qtdInimigos; (Inteiro que diz quantos inimigos foram carregados no mapa atual)
+7. Variáveis de Controle de Jogo (Lógica)
+    • int estadoJogo; (Inteiro: 0-Menu, 1-Jogando, 2-Pausa, 3-GameOver, 4-Vitoria)
+    • int faseAtual; (Inteiro: 1 para mapa1.txt, 2 para mapa2.txt...)
+    • float tempoDecorrido; (Cronômetro que conta os segundos de jogo)
+8. Variáveis de Ranking e Arquivo (Persistência)
+    • TIPO_PLACAR ranking[10]; (Vetor para manipular os 10 melhores no placar)
+    • FILE *arquivoPlacar; (Ponteiro de arquivo para ler/gravar o placar.bin)
+    • FILE *arquivoMapa; (Ponteiro de arquivo para ler os .txt)
+9. Variáveis temporárias
+    • int i, j; (Para os laços for que percorrem a matriz).
+    • char caractereLido; (Para ler o arquivo caractere por caractere antes de jogar na matriz).
+ Leitura e Renderização do Mapa
+O objetivo desta fase é fazer com que o programa abra um arquivo .txt, interprete os caracteres internos e os transforme em elementos visuais na janela da Raylib.
+
+1. Função de Carregamento (carregarMapa)
+Criar uma função, por exemplo void carregarMapa(int fase), que automatize a entrada de dados.
+    • Abertura do Arquivo: Use fopen para abrir o arquivo correspondente à fase atual (ex: mapa1.txt).
+    • Variáveis Locais de Suporte: * FILE *arq: Ponteiro para manipular os arquivos.
+        ◦ int i, j: Contadores para percorrer a matriz.
+    • Varredura com Laços Gêmeos: Utilize dois laços for aninhados (30 linhas por 30 colunas) para preencher a matriz mapa[i][j].
+    • Captura de Dados: Use fscanf(arq, " %c", &mapa[i][j]);.
+        ◦ O espaço antes do %c faz o C ignorar automaticamente os espaços e as quebras de linha (\n), evitando que o mapa fique "torto" ou deslocado na memória.
+
+
+
+2. Processamento de Entidades Dinâmicas
+Durante a leitura do arquivo (dentro dos mesmos laços for), o código deve identificar e extrair os objetos que se movem, impedindo que eles fiquem "pintados" no fundo do cenário:
+    • Jogador ('P'):
+        ◦ Salvar as coordenadas: player.pos.linha = i; e player.pos.coluna = j;.
+        ◦ Limpeza: Substituir mapa[i][j] por um espaço vazio ' ' (ou 'Z') para que o caractere não seja desenhado como parte do cenário estático.
+    • Inimigos ('E'):
+        ◦ Armazenar no vetor: listaInimigos[qtdInimigos].pos.linha = i; e listaInimigos[qtdInimigos].pos.coluna = j;.
+        ◦ Definir a direção inicial: listaInimigos[qtdInimigos].direcao = 1; (Direita).
+        ◦ Incrementar o contador: qtdInimigos++;.
+        ◦ Também substituir o caractere na matriz por um espaço vazio ' '.
+
+
+3. O Loop de Desenho (Renderização)
+No  main, dentro do loop while(!WindowShouldClose()) e entre as funções BeginDrawing() e EndDrawing(), implementar a lógica visual:
+    • Renderização do Cenário: Percorra a matriz mapa com dois for e desenhe conforme o caractere:
+        ◦ 'Z' (Chão): Desenhe um retângulo azul.
+        ◦ 'S' / 'D' / 'H' (Escadas): Desenhe o elemento (ex: retângulo marrom).
+        ◦ 'F' (Porta/Vitória): Desenhe a porta (ex: retângulo amarelo). Atenção: Não remova o 'F' da matriz, pois ele é necessário para detectar a vitória depois.
+    • Cálculo de Pixels: Use sempre a fórmula de conversão:
+        ◦ X_Tela = coluna * TILE_SIZE
+        ◦ Y_Tela = linha * TILE_SIZE
+        ◦ Exemplo: DrawRectangle(j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE, COR);
+
+
+
+4. Desenhando as Entidades (Camada Superior)
+Após desenhar todo o cenário estático, desenhar o jogador e os inimigos usando as posições salvas nas structs. Isso garante que eles apareçam "na frente" do cenário:
+    • DrawRectangle(player.pos.coluna * TILE_SIZE, player.pos.linha * TILE_SIZE, TILE_SIZE, TILE_SIZE, RED);
+
+Pontos de Atenção para o Relatório
+    • Caminho do Arquivo: Os arquivos .txt devem estar na mesma pasta do executável para o fopen funcionar.
+    • Resultado Esperado: A fase 2 é considerada concluída quando, ao rodar o programa, você vê o labirinto corretamente montado na tela e o jogador (quadrado vermelho) posicionado no local exato definido no arquivo de texto.
+
+ Movimentação e Lógica do Jogador
+O objetivo é permitir que o utilizador controle o quadrado vermelho (player) usando o teclado, respeitando as limitações do mapa (não atravessar o chão e usar escadas).
+1. Captura de Entrada (Teclado)
+Dentro do loop principal, antes de desenhar, verificar qual tecla foi pressionada usando as funções da Raylib:
+    • Subir: IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)
+    • Descer: IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)
+    • Esquerda: IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)
+    • Direita: IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)
+Por que usar IsKeyPressed e não IsKeyDown?
+No nível básico do trabalho (movimentação por matriz), é melhor usar IsKeyPressed:
+    • Ele detecta apenas um toque. Isso faz o jogador se mover "quadradinho por quadradinho".
+    • Se usar IsKeyDown (detecta tecla segurada), o jogador vai atravessar a matriz inteira em um segundo, pois o jogo roda a 60 frames por segundo.
+
+
+
+2. Movimentação Horizontal e Gravidade Simples
+O movimento depende do que está abaixo do jogador: O jogador só pode se mover para os lados se a posição abaixo dele (mapa[linha + 1][coluna]) for chão ('Z') ou parte de uma escada ('H', 'S', 'D').
+Lógica: * Se apertar 'D', verificar se a coluna à direita está dentro dos limites (30) e se há chão abaixo.
+        ◦ Se não houver chão abaixo, o jogador deve "cair" (aumentar a linha) até encontrar um 'Z'.
+
+3. Lógica das Escadas
+Conforme o enunciado para o nível básico, a movimentação vertical é simplificada:
+    • Subida: Se o jogador estiver sobre um caractere 'S' (Início de Subida) e pressionar W, a posição dele deve ser atualizada para a coordenada do 'H' ou 'D' correspondente acima.
+    • Descida: Se o jogador estiver sobre um caractere 'D' (Início de Descida) e pressionar S, ele é movido para o caractere 'H' ou 'S' correspondente abaixo.
+
+4. Mudança de Fase (Colisão com a Porta)
+A cada movimento, o código deve checar o conteúdo da matriz na posição atual do jogador:
+    • Verificação: if (mapa[player.pos.linha][player.pos.coluna] == 'F').
+    • Ação: 
+1. Incrementar faseAtual. 
+2. Chamar novamente a função carregarMapa(faseAtual). 
+3. Resetar o tempo ou a posição do jogador.
+
+Pontos técnicos para orientar o código:
+Variáveis Temporárias de Teste:
+int proxLinha, proxColuna: Usa estas variáveis para calcular o movimento antes de o aplicar à struct player. Só atualiza a posição real se o movimento for válido.
+Sistema de Bloqueio de Bordas:
+Garante que o jogador não saia da matriz: if (proxColuna >= 0 && proxColuna < 30).
+Fluxo de Execução:
+1º: Ler Teclado -> 2º: Validar contra a Matriz -> 3º: Aplicar Gravidade (se necessário) -> 4º: Verificar Vitória.
+
+Inimigos e Colisão
+O objetivo desta fase é fazer com que os inimigos se movam sozinhos pela matriz e detectem se encostaram no jogador, o que causa a derrota.
+1. Movimentação Automática dos Inimigos
+Diferente do jogador, o inimigo não espera um comando de teclado. Ele se move a cada X frames ou segundos.
+    • Lógica de Patrulha: * O inimigo tenta mover-se na sua direcao atual (1 para direita, -1 para esquerda).
+        ◦ Se a próxima célula for uma parede (fora da matriz) ou se não houver chão ('Z') abaixo da próxima posição, ele inverte a direcao (direcao *= -1).
+    • Velocidade: Para que o jogo seja justo, use um contador de frames para mover o inimigo apenas uma vez a cada 10 ou 15 frames (já que o jogo roda a 60 FPS).
+2. O Loop dos Inimigos
+Como tem vários inimigos, deve usar um laço for para atualizar todos eles:
+C
+for (int i = 0; i < qtdInimigos; i++) {
+    // 1. Calcular próxima posição
+    // 2. Verificar se deve inverter a direção
+    // 3. Atualizar posição real na struct listaInimigos[i]
+}
+
+3. Detecção de Colisão (Derrota)
+Após mover o jogador e mover os inimigos, verificar se eles ocupam o mesmo espaço na matriz.
+    • A verificação: Comparar se player.pos.linha == listaInimigos[i].pos.linha E player.pos.coluna == listaInimigos[i].pos.coluna.
+    • Consequência: Se a condição for verdadeira:
+        1. Mudar estadoJogo para GAME_OVER.
+        2. Parar o cronômetro de tempo.
+4. Renderização dos Inimigos
+Lembrar de adicionar o desenho deles no loop de renderização (Fase 2):
+    • Usar uma cor diferente (ex: PURPLE ou ORANGE) para distinguir do jogador.
+    • DrawRectangle(listaInimigos[i].pos.coluna * TILE_SIZE, listaInimigos[i].pos.linha * TILE_SIZE, TILE_SIZE, TILE_SIZE, PURPLE);
+
+
+    1. Contador de Frames para Movimento:
+        ◦ Variável int framesCounterInimigo para controlar o "passo" do inimigo.
+    2. IA de Plataforma:
+        ◦ O inimigo deve checar duas coisas antes de andar:
+            1. Se a frente é um espaço vazio (evita que ele caia da plataforma).
+            2. Se a frente é o limite da matriz (0 ou 29).
+    3. Reset de Inimigos:
+        ◦ Sempre que carregarMapa for chamada, lembre-se de zerar qtdInimigos = 0 antes de ler o arquivo, para não acumular inimigos da fase anterior no vetor.
+Menu e Ranking
+O objetivo desta fase é criar as telas de transição e implementar o sistema de recordes exigido no enunciado.
+1. Sistema de Estados do Jogo
+Para gerenciar o que aparece na tela, usar uma variável de controle
+(ex: int estadoJogo).
+
+    • 0 (MENU): Exibe o título "DKINF" e a opção "Pressione ENTER para Jogar".
+    • 1 (JOGANDO): Onde roda a lógica das Fases 2, 3 e 4.
+    • 2 (GAME_OVER): Exibe a mensagem de derrota e volta ao menu.
+    • 3 (VITORIA/RANKING): Exibe os tempos dos melhores jogadores.
+2. O Ranking (A Struct Placar)
+O enunciado pede especificamente uma struct para o ranking. No código:
+C
+typedef struct {
+    char nome[10];
+    float tempo;
+} TIPO_PLACAR;
+
+    • Captura do Nome: Quando o jogador vence todas as fases, usar a função GetCharPressed() da Raylib para deixar o usuário digitar o nome dele na tela.
+3. Manipulação de Arquivo Binário (.bin)
+O ranking deve ser lido no início do programa e salvo sempre que um novo recorde for batido.
+    • Escrita (wb): Usar fwrite(&vetorRanking, sizeof(TIPO_PLACAR), 5, arq) para salvar o top 5.
+    • Leitura (rb): Usar fread(&vetorRanking, sizeof(TIPO_PLACAR), 5, arq) ao abrir o jogo para carregar os recordes antigos.
+    • Ordenação: Sempre que alguém ganhar, adicionar o novo tempo ao vetor, ordenar (do menor tempo para o maior) e salvar apenas os 5 melhores.
+4. Cronômetro de Jogo
+Para o ranking fazer sentido, medir o tempo:
+    • Usar a função GetTime() da Raylib.
+    • Cálculo: tempoFinal = tempoFim - tempoInicio;
+    • Exibir o tempo na tela durante o jogo para dar senso de urgência.
+
+    1. Interface de Texto:
+        ◦ Usar DrawText() para escrever o menu e o ranking. Centralizar o texto dividindo a largura da tela por 2.
+
+    2. Lógica de Persistência:
+        ◦ Lembrar: Arquivos binários não são legíveis no Bloco de Notas como os arquivos .txt. Se tentar abrir o ranking.bin, verá símbolos estranhos
+    3. Fluxo de Fim de Jogo:
+        ◦ Se o jogador morrer (colisão), o estadoJogo vai para GAME_OVER.
+        ◦ Se o jogador passar da última fase, ele vai para a tela de "Inserir Nome" e depois para o RANKING.
+ Resultado Esperado
+Ao final desta fase, seu jogo terá um início (Menu), um meio (Fases) e um fim (Ranking salvo no computador).
+
+Polimento e Mecânicas Avançadas
+Esta fase foca em transformar a movimentação rígida de matriz em algo mais fluido e adicionar o sistema de "tentativas" do jogador.
+1. A Mecânica do Pulo (Gravidade Dinâmica)
+Para o pulo não ser apenas um "teletransporte", precisamos de uma lógica de estado:
+    • Estado de Pulo: Adicionar bool estaPulando e int forcaPulo à struct do Jogador.
+    • Ação: Quando KEY_SPACE for pressionada e o jogador estiver no chão:
+        ◦ estaPulando = true.
+        ◦ O jogador sobe algumas linhas na matriz (ou pixels, se estiver usando coordenadas suaves).
+        ◦ Após atingir a altura máxima, a gravidade (Fase 3) puxa-o de volta.
+    • Dica AlgProg: Se o pulo for apenas na matriz, ele pode "saltar" 2 linhas acima e, após 10 frames, a gravidade faz o resto.
+2. Sistema de Vidas e Reset
+O enunciado sugere que o jogador não deve ser punido com o fim do jogo imediato ao tocar num inimigo.
+    • Vidas Iniciais: Comece com int vidas = 3.
+    • Mecânica de Dano:
+        ◦ Se colisaoInimigo == true:
+            ▪ vidas--.
+            ▪ Se vidas > 0: Reseta a posição do jogador para o inicioFase (não fecha o jogo).
+            ▪ Se vidas == 0: estadoJogo = GAME_OVER.
+3. Itens e Vidas Extras
+Para ganhar nota máxima nos "Desejáveis" (Extras):
+    • O Caractere 'V': Adicionar no seu .txt o caractere 'V'.
+    • Lógica de Coleta: Se mapa[i][j] == 'V':
+        1. vidas++.
+        2. mapa[i][j] = ' ' (o item desaparece da matriz).
+        3. Toca um som de "Power Up".
+4. Áudio e Visual
+Agora usamos as funções de multimédia da Raylib:
+    • Sons:
+        ◦ InitAudioDevice() no início do main.
+        ◦ Sound somPulo = LoadSound("pulo.wav");
+        ◦ PlaySound(somPulo); sempre que o espaço for apertado.
+
+
+    • Sprites
+        ◦ Em vez de DrawRectangle, usar DrawTexture(spritePlayer, x, y, WHITE). Isso faz o seu jogo parecer o Donkey Kong original
+
+    1. Gestão de Áudio:
+        ◦ Não esqueça o UnloadSound() e CloseAudioDevice() no final do código para evitar vazamento de memória.
+    2. Feedback Visual:
+        ◦ Quando o jogador tiver apenas 1 vida, faça o texto das vidas piscar em vermelho usando um contador de frames.
+    3. Ajuste de Dificuldade:
+        ◦ Ao avançar de fase (Fase 5), aumentar a velocidade dos inimigos (diminuindo o framesCounterInimigo).
+
+ Checklist Final do Projeto
+    • [ ] Leitura de níveis por arquivos externos.
+    • [ ] Movimentação com gravidade e escadas.
+    • [ ] Inimigos com patrulha automática.
+    • [ ] Ranking salvo em arquivo binário.
+    • [ ] Sons, Vidas e Pulo funcionando.
+**Código**
+Organização do Código:
+(obs. Tudo aki tem que ser revisado, especialmente pra compatibilizar com as outras definições: Nomes de variáveis, funções, etc. Desde já vou tentar ir seguindo o padrão estabelecido, mas acho que compatibilizar depois é bem tranquilo também)
+
+    • Seguir o padrão: 
+
+Protótipos das funções
+main() {...}
+Declaração das funções
+
+Que pode ser dividido em três arquivos para melhor organização: (decidir sobre nomes depois)
+Protótipos das funções		// indk.h
+main() {...}				// main.c
+Declaração das funções		// indk.c
+
+
+Protótipos das funções:
+    • int* carregaMapa(int fase);		
+// Recebe inteiro da fase e retorna ponteiro para matriz com os dados da fase;
+    • void renderizaMapa(int fase);
+		// Renderiza a fase em questão (baseado na matriz fornecida);
+Rascunho
+/*
+-> Por hora temos a renderização basica do mapa, com um player movimentavel.
+* Implementar a logica que faz o player (e futuros inimigos não atravessarem plataformas)
+  . Isso vai envolver manter o jogo a um certo FPS, e então checar se o que há abaixo do jogador é uma plataforma.
+  . Futuramente, será necessário deixar a posição do jogador como float 
+
+
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <raylib.h>
+
+#define NCOL 31
+#define NLIN 31
+
+#define POS 20 
+#define TAM 20
+
+#define SPEED .25
+#define GRAVITY .01
+
+typedef struct player {
+	float pos[2];
+    int intPos[8];      // possição em inteiros dos 4 cantos do player, da esquerda para a direita, de cima para baixo; ex: intPos[0] = cord x do cando superior esquerdo; intPos[5] = cord y do canto inferior esquerdo.
+    float verticalV;    // velocidade vertical sera usada para lidar gravidade, quanto a saltos eu cair de plataformas
+    int canTP;
+} mario; //sim, nome horrivel para isso
+
+
+char* alocaMatriz() { // matriz[i*NCOL+j]
+    return (char*) malloc(sizeof(char)*NCOL*NLIN);
+}
+
+char* carregaMapa(mario* mario) { 
+	char tmpChar;
+	char* matrix = alocaMatriz();
+    FILE *maps;         
+    maps = fopen("mapa.txt", "r");
+    if (maps == NULL) {
+        printf("Error: Could not open file.\n");
+        return NULL;
+     }
+    for (int i=0;i<NLIN;i++) {
+        for (int j=0;j<NCOL;j++) {
+	    tmpChar = fgetc(maps);
+            matrix[i*NCOL+j] = tmpChar;		
+            if (tmpChar == 'P') {
+                mario->pos[0] = i;
+                mario->pos[1] = j;
+            }
+
+        }
+    }	
+    fclose(maps);
+    return matrix;
+}
+
+void printaMatriz2(char* matrix, mario player) {
+    for (int i=0;i<NLIN;i++) {
+        for (int j=0;j<NCOL;j++) {
+		if (player.pos[0] == i && player.pos[1] == j) printf("P");
+		else printf("%c",matrix[i*NCOL+j]);
+        }
+    }
+    printf("\n");
+}
+void printaMatriz(char* matrix) {
+    for (int i=0;i<NLIN;i++) {
+        for (int j=0;j<NCOL;j++) {
+            printf("%c",matrix[i*NCOL+j]);
+        }
+    }
+}
+
+void drawMatrix(char* matrix, mario player) {
+    for (int i=0;i<NLIN;i++) {
+        for (int j=0;j<NCOL;j++) {
+            //printf("%c",matrix[i*NCOL+j]);
+            switch (matrix[j*NCOL+i]) {
+                case 'F':
+                    DrawRectangle(i*POS,j*POS,TAM,TAM, PINK); 
+                    break;
+                case 'Z':
+                    DrawRectangle(i*POS,j*POS,TAM,TAM, BLUE); 
+                    break;
+                case 'S': 
+                    //break;
+                case 'H':
+                    //break;
+                case 'D':
+                    DrawRectangle(i*POS,j*POS,TAM,TAM, YELLOW); 
+                    break;
+            }
+        }
+    }
+    DrawRectangle(player.pos[1]*POS,player.pos[0]*POS, TAM,TAM, RED); 
+
+    DrawRectangle(player.pos[1]*POS,player.pos[0]*POS, 4,4, PINK); 
+    DrawRectangle(player.pos[1]*POS,player.pos[0]*POS+TAM-1, 4,4, PINK); 
+}
+
+
+void calculaCantosInt(mario* player) {
+    float offset = 0.9;
+    player->intPos[0] = (int)player->pos[0];
+    player->intPos[1] = (int)player->pos[1];
+
+    player->intPos[2] = (int)player->pos[0];
+    player->intPos[3] = (int)(player->pos[1]+offset);
+
+    player->intPos[4] = (int)(player->pos[0]+offset);
+    player->intPos[5] = (int)player->pos[1];
+
+    player->intPos[6] = (int)(player->pos[0]+offset);
+    player->intPos[7] = (int)(player->pos[1]+offset);
+}
+
+void mover(mario* player) {
+    if (player->verticalV > .7) player->verticalV = .7;
+    player->pos[0] += player->verticalV;
+
+}
+                            
+
+int main() {
+	
+    mario structThing;
+	mario* player1 = &structThing;
+    char* matrix = carregaMapa(player1);
+    printaMatriz(matrix);
+
+    player1->canTP = 1;
+/*
+    while (1) {
+	    char tmpC;
+	    scanf("%c", &tmpC);
+		if (tmpC == 'w') player1->pos[0] --;
+		if (tmpC == 's') player1->pos[0] ++;
+		if (tmpC == 'd') player1->pos[1] ++;
+		if (tmpC == 'a') player1->pos[1] --;
+    printaMatriz2(matrix,structThing);
+
+    printf("%c", tmpC);
+    printf("p pos 1: %d /np.pos 2: %d/n", player1->pos[0], player1->pos[1]);
+    }
+*/
+
+	InitWindow((NLIN-1)*TAM,(NCOL-1)*TAM,"shdfhsdfhshf");	
+    SetTargetFPS(60);
+	while (!WindowShouldClose()) {
+        //O que segue é um sistema *ruim* para colisão com plataformas, utilizando ocmo base a posição em inteiros do player (isso descobre em qual quadrado da grade se encontra o player), a partir disso, facilitado pelo fato de que todas as plataformas estao alinhadas a uma grade, fica facil checar se a colisão ocorre ou não (isso vai quebrar se a velocidade for muito grande....
+		if (IsKeyDown(KEY_W) && player1->canTP) player1->pos[0] -= SPEED;
+        calculaCantosInt(player1);
+        if (matrix[(player1->intPos[4]-1)*NCOL+player1->intPos[5]] == 'Z' && player1->canTP) { 
+            player1->pos[0] = player1->intPos[4]; 
+            calculaCantosInt(player1);
+            player1->verticalV = 0.0;
+            player1->canTP = 0; 
+        }
+        if (matrix[(player1->intPos[6]-1)*NCOL+player1->intPos[7]] == 'Z' && player1->canTP) { 
+            player1->pos[0] = player1->intPos[4]; 
+            calculaCantosInt(player1);
+            player1->verticalV = 0.0;
+            player1->canTP = 0; 
+        }
+
+		if (IsKeyDown(KEY_S)) player1->pos[0] += SPEED;
+        calculaCantosInt(player1);
+        if (matrix[(player1->intPos[0]+1)*NCOL+player1->intPos[1]] == 'Z') {player1->pos[0] = player1->intPos[0]; calculaCantosInt(player1);}
+        if (matrix[(player1->intPos[2]+1)*NCOL+player1->intPos[3]] == 'Z') {player1->pos[0] = player1->intPos[0]; calculaCantosInt(player1);}
+
+		if (IsKeyDown(KEY_D)) player1->pos[1] += SPEED;
+        calculaCantosInt(player1);
+        if (matrix[(player1->intPos[0])*NCOL+player1->intPos[1]+1] == 'Z') { player1->pos[1] = player1->intPos[1]; calculaCantosInt(player1);}
+        if (matrix[(player1->intPos[4])*NCOL+player1->intPos[5]+1] == 'Z') { player1->pos[1] = player1->intPos[1]; calculaCantosInt(player1);}
+
+		if (IsKeyDown(KEY_A)) player1->pos[1] -= SPEED;
+        calculaCantosInt(player1);
+        if (matrix[(player1->intPos[2])*NCOL+player1->intPos[3]-1] == 'Z') { player1->pos[1] = player1->intPos[3]; calculaCantosInt(player1);}
+        if (matrix[(player1->intPos[6])*NCOL+player1->intPos[7]-1] == 'Z') { player1->pos[1] = player1->intPos[7]; calculaCantosInt(player1);}
+
+        player1->verticalV += GRAVITY;      
+        mover(player1);
+        calculaCantosInt(player1);
+        if (matrix[(player1->intPos[0]+1)*NCOL+player1->intPos[1]] == 'Z') {
+            player1->pos[0] = player1->intPos[0]; 
+            calculaCantosInt(player1);
+            player1->verticalV = 0.0;
+            player1->canTP = 1;
+        }
+
+        if (matrix[(player1->intPos[2]+1)*NCOL+player1->intPos[3]] == 'Z') {
+            player1->pos[0] = player1->intPos[0]; 
+            calculaCantosInt(player1);
+            player1->verticalV = 0.0;
+            player1->canTP = 1; 
+        }
+                             
+        printf("current Velocity: %.2f \n", player1->verticalV);
+
+
+
+
+		BeginDrawing();
+			ClearBackground(BLACK);
+            drawMatrix(matrix,structThing);
+		EndDrawing();	
+	}
+
+
+	return 0;
+}
+
+

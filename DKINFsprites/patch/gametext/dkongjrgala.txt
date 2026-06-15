@@ -1,0 +1,15 @@
+GalaKong Junior
+
+A Junior version of GalaKong which mashes up Donkey 
+Kong Junior with Galaga.
+
+DK JR is assisted by an accompanying ship which can 
+take out enemies. Bonus points are awarded for hitting
+multiple targets.  The jump button also shoots.
+
+Your ship follows DK JR's position automatically. 
+
+!!Sitting on a vine and shooting enemies is a good 
+!!points scoring strategy!
+
+Hack Developed by Jon Wilson (10yard)

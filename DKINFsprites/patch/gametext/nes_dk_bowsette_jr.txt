@@ -1,0 +1,11 @@
+NES Console - Bowsette Junior
+
+Donkey Kong and Donkey Kong Jr characters are replaced
+with Bowsette and Bowsette Junior respectively.
+Jumpman is replaced by Toadette.
+
+Items are changed to MechaKoopas, Bomb-ombs and Koopa 
+shells.
+All enemies are based on Captain Toad Treasure Tracker.
+
+Hack Developed by Kazufox

@@ -1,0 +1,14 @@
+Intellivision - Inty Kong
+
+An adapted version of Monkey Moon to include wider
+platforms, broken ladders - which can be partially
+climbed, the Oil Can and a girl shouting for help at 
+the top.
+Also, barrels can now randomly roll down any ladder as 
+well as off the end of a platform.  This means barrels
+will group and be more difficult to jump over.
+The player sprite was changed and uses a colour 
+overlay.
+
+Adapted by 10yard 
+(from Monkey Moon by Nanochess/Oscar Toledo G)
