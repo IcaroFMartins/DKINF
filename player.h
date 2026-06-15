@@ -1,11 +1,12 @@
-
 #ifndef PLAYER_H
 #define PLAYER_H
-/** A estrutura mario representa o jogador no jogo, armazenando sua posição atual em coordenadas de ponto flutuante (pos)
-* as posições inteiras dos cantos do jogador (intPos), a velocidade vertical (verticalV), o número de pulos realizados (jumpCount) 
-* e um indicador booleano para determinar se o jogador pode pular (canJump). */
+
+#include <raylib.h>
 #include "game.h"
 
-void calculaCantosInt(mario* player);
+// Funções para manipulação do jogador
+void calculaCantosInt(Mario* player);
+bool coletaMartelo(Mario* jogador, char* matrix);
+void atualizaMartelo(Mario* jogador, char* matrix, Fogo* flamas, int nFlamas, Barril* barris, int nBarris, float dt);
 
 #endif // PLAYER_H

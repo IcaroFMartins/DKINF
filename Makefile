@@ -2,7 +2,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99
 LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-TARGET = jogo
+TARGET = DKINF.exe
 
 # Arquivos fonte do projeto e seus objetos correspondentes
 SRC = main.c mapa.c player.c render.c
@@ -21,6 +21,6 @@ $(TARGET): $(OBJ)
 
 # Remove arquivos de compilação gerados
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(TARGET) main
 
 .PHONY: all clean

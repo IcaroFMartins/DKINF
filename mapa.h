@@ -3,11 +3,11 @@
 
 #include "game.h"
 
-// As dimensões do mapa já são definidas em game.h.
-// Não redefina NCOL e NLIN aqui para evitar inconsistências.
+// Protótipos das funções de manipulação do mapa.
 char* alocaMatriz(void);
-char* carregaMapa(mario* player,int fase);
+char* carregaMapa(Mario* player, int fase, Inimigo* inimigos, int* nInimigos, Moeda* moedas, int* nMoedas, int* dk_r, int* dk_c, Barril* barris, int* nBarris, ItemHP* itensHP, int* nItemsHP);
+
+// Função para imprimir a matriz no terminal (para depuração)
 void printaMatriz(char* matrix);
-void printaMatriz2(char* matrix, const mario player);
 
 #endif // MAPA_H

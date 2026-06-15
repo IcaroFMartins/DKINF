@@ -4,100 +4,99 @@
 #include <string.h>
 
 char* alocaMatriz(void) {
-    // Aloca memória para armazenar o mapa como uma matriz unidimensional
     return (char*) malloc(sizeof(char) * NCOL * NLIN);
 }
 
-char* carregaMapa(mario* player,int fase) {
-    // Variável temporária para cada caractere lido do arquivo
+char* carregaMapa(Mario* player, int fase, Inimigo* inimigos, int* nInimigos, Moeda* moedas, int* nMoedas, int* dk_r, int* dk_c, Barril* barris, int* nBarris, ItemHP* itensHP, int* nItemsHP) {
     char tmpChar;
-
-    // Aloca a matriz do mapa na memória
     char* matrix = alocaMatriz();
 
-    // Inicializa a matriz com espaços em branco
-    for (int i = 0; i < NCOL * NLIN; i++) {
-        matrix[i] = ' ';
-    }
+    // Inicializa a matriz com espaços vazios
+    for (int i = 0; i < NCOL * NLIN; i++) matrix[i] = ' ';
 
-    // Forma muito ruim de fazer a string do nome do arquivo de mapaX.txt
-    char *nome1 = "mapa";
-    char *nome2 = ".txt";
-    char mapaNome[10];
-    for (int i=0;i<4;i++)
-      mapaNome[i] = nome1[i];
-    mapaNome[4] = 48+fase;
-    for (int i=0;i<5;i++)
-      mapaNome[i+5] = nome2[i];
+    char mapaNome[20];
+    sprintf(mapaNome, "mapa%d.txt", fase);
 
-
-    // Abre o arquivo de mapa para leitura
     FILE* maps = fopen(mapaNome, "r");
-    if (maps == NULL) {
-        printf("Error: Could not open file.\n");
-        free(matrix); // Libera memória se o arquivo não puder ser aberto
-        return NULL;
-    }
+    if (maps == NULL) return NULL;
 
-    int row = 0, col = 0; // Contadores de linha e coluna do mapa
+    int row = 0, col = 0;
+    if (nInimigos) *nInimigos = 0;
+    if (nMoedas) *nMoedas = 0;
+    if (dk_r) *dk_r = -1;
+    if (dk_c) *dk_c = -1;
+    if (nBarris) *nBarris = 0;
+    if (nItemsHP) *nItemsHP = 0;
 
-    // Lê o arquivo caractere a caractere até o fim do arquivo ou até preencher todas as linhas
     while ((tmpChar = (char) fgetc(maps)) != EOF && row < NLIN) {
-        // Ignora quebras de linha e retornos de carro
-        if (tmpChar == '\n' || tmpChar == '\r') {
-            if (col > 0) {
-                row++; // Avança para a próxima linha
-                col = 0; // Reinicia a coluna
+        if (tmpChar == '/') {
+            int next = fgetc(maps);
+            if (next == '/') {
+                // ignora comentário até o final da linha
+                while (next != EOF && next != '\n' && next != '\r') next = fgetc(maps);
+                if (next == '\n') {
+                    if (col > 0) { row++; col = 0; }
+                }
+                continue;
+            } else if (next != EOF) {
+                ungetc(next, maps);
             }
+        }
+
+        if (tmpChar == '\n' || tmpChar == '\r') {
+            if (col > 0) { row++; col = 0; }
             continue;
         }
 
-        // Apenas processa caracteres dentro do limite de colunas definido
         if (col < NCOL) {
-            int idx = row * NCOL + col; // Converte coordenada 2D para índice 1D
-
+            int idx = row * NCOL + col;
+            
             if (tmpChar == 'P') {
-                // Registra a posição inicial do jogador
-                player->pos[0] = (float) row;
-                player->pos[1] = (float) col;
-                matrix[idx] = ' '; // Substitui 'P' por espaço no mapa
+                player->pos.x = (float) col * TAM_BLOCO;
+                player->pos.y = (float) row * TAM_BLOCO;
+                matrix[idx] = ' ';
+            } else if (tmpChar == 'E' && inimigos && nInimigos && *nInimigos < MAX_INIMIGOS) {
+                inimigos[*nInimigos].x = (float)col * TAM_BLOCO;
+                inimigos[*nInimigos].y = (float)row * TAM_BLOCO;
+                inimigos[*nInimigos].direcao = 'R';
+                inimigos[*nInimigos].ativo = true;
+                inimigos[*nInimigos].frameCounter = 0;
+                inimigos[*nInimigos].direcaoAtual = 1;
+                (*nInimigos)++;
+                matrix[idx] = ' ';
+            } else if (tmpChar == 'D') {
+                if (dk_r) *dk_r = row;
+                if (dk_c) *dk_c = col;
+                matrix[idx] = 'D';
+            } else if (tmpChar == 'M') {
+                matrix[idx] = 'M';
+            } else if (tmpChar == 'X') {
+                matrix[idx] = 'X';
+            } else if (tmpChar == 'B' && barris && nBarris && *nBarris < MAX_BARRIS) {
+                barris[*nBarris].x = (float)col * TAM_BLOCO;
+                barris[*nBarris].y = (float)row * TAM_BLOCO;
+                barris[*nBarris].direcao = 'L';
+                barris[*nBarris].ativo = true;
+                barris[*nBarris].frame = 0;
+                barris[*nBarris].rolandoEscada = false;
+                barris[*nBarris].velVertical = 0.0f;
+                (*nBarris)++;
+                matrix[idx] = ' ';
+            } else if (tmpChar == 'F') {
+                matrix[idx] = 'F';
+            } else if (tmpChar == 'Q') {
+                matrix[idx] = 'Q';
             } else {
-                matrix[idx] = tmpChar; // Guarda o caractere do mapa na matriz
+                matrix[idx] = tmpChar;
             }
-
-            col++; // Avança para a próxima coluna
+            col++;
         }
     }
 
-    fclose(maps); // Fecha o arquivo após a leitura
-    return matrix; // Retorna a matriz do mapa preenchida
+    fclose(maps);
+    return matrix;
 }
 
-bool isSolid(char block) {
-    // Retorna true se o bloco for um tipo sólido que bloqueia o jogador
-    return (block == 'Z');
-}
-
-void printaMatriz(char* matrix) {
-    // Imprime a matriz do mapa sem mostrar o jogador
-    for (int i = 0; i < NLIN; i++) {
-        for (int j = 0; j < NCOL; j++) {
-            printf("%c", matrix[i * NCOL + j]);
-        }
-        printf("\n");
-    }
-}
-
-void printaMatriz2(char* matrix, const mario player) {
-    // Imprime a matriz do mapa mostrando a posição atual do jogador
-    for (int i = 0; i < NLIN; i++) {
-        for (int j = 0; j < NCOL; j++) {
-            if (player.pos[0] == i && player.pos[1] == j) {
-                printf("P");
-            } else {
-                printf("%c", matrix[i * NCOL + j]);
-            }
-        }
-        printf("\n");
-    }
+bool ehSolido(char bloco) {
+    return (bloco == 'F' || bloco == 'Z' || bloco == 'X');
 }
